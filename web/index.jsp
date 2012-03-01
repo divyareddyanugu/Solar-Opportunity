@@ -37,6 +37,8 @@ Author     : Divya Reddy Anugu
                 var planeCount = 0;
                 var obCount = 0;
                 var planeArray = new Array();
+                var isPlaneActive = false;
+                var isObsActive = false;
 
                 var AreaList = new Array();
                 var PlaneList = new Array();
@@ -67,13 +69,7 @@ Author     : Divya Reddy Anugu
                 function addSampleUIHtml(html) {
                     document.getElementById('sample-ui').innerHTML += html;
                 }
-                function addPlaneUIHtml(html) {
-                    document.getElementById('plane-ui').innerHTML += html;
-                }
-                function addObsUIHtml(html) {
-                    document.getElementById('obstruction-ui').innerHTML += html;
-                }
-
+                
                 function clearAreaUIHtml() {
                     document.getElementById('area-ui').innerHTML = "";
                     
@@ -140,11 +136,16 @@ Author     : Divya Reddy Anugu
                     google.earth.createInstance('map3d', initCallback, failureCallback);
 
                     addSampleUIHtml(
-                    '<input id="location" type="text" widht="100px" value="835 Milton St, Oakland, CA"/>'
+                    '<input id="location" type="text" style="width:160px;" value="835 Milton St, Oakland, CA"/>'
                 );
 
-                    addSampleButton('Load Property', buttonClick)
-                    //  document.getElementById('distance').innerHTML = "0 Sq Meters";
+                    addSampleButton('Load Property', buttonClick);
+
+                    document.getElementById('undo-plane').disabled = true;
+                    document.getElementById('undo-obs').disabled = true;
+                    document.getElementById('save-plane').disabled = true;
+                    document.getElementById('save-obs').disabled = true;
+
 
                 });
 
@@ -154,10 +155,16 @@ Author     : Divya Reddy Anugu
                     var drawColor = '#0f0';
                     var polyColor = '8000ff00';
                     if(areaType == "plane") {
+                        isPlaneActive = true;
+                        document.getElementById("undo-plane").disabled = false;
+                        document.getElementById("save-plane").disabled = false;
                         drawColor = '#0f0';
       
                     }
                     else if (areaType == "obstruction") {
+                        isObsActive = true;
+                        document.getElementById("undo-obs").disabled = false;
+                        document.getElementById("save-obs").disabled = false;
                         drawColor = '#f00';
                         polyColor = '800000ff';
                     }
@@ -168,6 +175,14 @@ Author     : Divya Reddy Anugu
                         }
                     });
                     gex.edit.drawLineString(polyPlacemark.getGeometry().getOuterBoundary());
+
+                }
+
+                function undoLastPoint() {
+
+                    gex.dom.removeObject(polyPlacemark);
+                    gex.edit.endEditLineString(polyPlacemark.getGeometry().getOuterBoundary());
+                    polyPlacemark = null;
                 }
 
                 function editPoly() {
@@ -189,6 +204,18 @@ Author     : Divya Reddy Anugu
                     gex.edit.endEditLineString(polyPlacemark.getGeometry().getOuterBoundary());
   
                     updateAreaList(polyPlacemark, areaType);
+                    //Disable undo button
+                    if(areaType == "plane") {
+                        isPlaneActive = false;
+                        document.getElementById("undo-plane").disabled = true;
+                        document.getElementById("save-plane").disabled = true;
+                    } else if(areaType == "obstruction") {
+                        isObsActive = false;
+                        document.getElementById("undo-obs").disabled = true;
+                        document.getElementById("save-obs").disabled = true;
+
+                    }
+
                 }
 
                 // create the distance updater function
@@ -217,7 +244,7 @@ Author     : Divya Reddy Anugu
                         /*  addPlaneUIHtml(
                             '<strong>Plane '+ planeCount+': </strong><span id="distance' +planeCount +'">'+ roundNumber(areaSqFt,2) +' SqFt</span> <br/>'
                         );*/
-
+AreaList.push(newArea);
 
                     }
                     if (areaType == "obstruction") {
@@ -226,43 +253,52 @@ Author     : Divya Reddy Anugu
                         PlaneList = [];
                         ObsList = [];
                         newArea.refPlaneId = getParentPlaneId(newArea);
-
-                        /*  addObsUIHtml(
-                            '<strong>Obstruction '+ obCount+': </strong><span id="distance' +obCount +'">'+ roundNumber(areaSqFt,2) +' SqFt</span> <br/>'
-                        );*/
+                        if(newArea.refPlaneId != -1) {
+                            AreaList.push(newArea);
+                            updateEffectivePlaneArea(newArea.refPlaneId, newArea.area);
+                        } else {
+                            alert("Obstruction must lie entirely in one plane");
+                            undoLastPoint();
+                        }
 
                     }
 
-                    AreaList.push(newArea);
-                    refreshAreaListUI();
-                    //var k = new geo.Polygon(polyPlacemark.getGeometry()).toString();
-                    //document.getElementById('distance').innerHTML = areaSqFt;
                     
+                    refreshAreaListUI();
+                }
 
+                function updateEffectivePlaneArea(id, area) {
+                    for(var i in AreaList) {
+                        if(AreaList[i].id == id) {
+                            AreaList[i].effectiveArea -=roundNumber(area,2);
+                        }
+                    }
                 }
 
                 function refreshAreaListUI() {
                     clearAreaUIHtml();
-                    PlaneList = [];
-                    ObsList = [];
+                    var totalArea = 0;
+                    //ObsList = [];
                     PlaneList = getPlanes();
                     ObsList = getObstructions();
                     for(var a in PlaneList) {
-                        document.getElementById('area-ui').innerHTML += "Plane" + PlaneList[a].id + ": " + PlaneList[a].area + "Sq Ft \n";  ;
-
+                        document.getElementById('area-ui').innerHTML += "<br/> Plane " + PlaneList[a].id + ": " + roundNumber(PlaneList[a].effectiveArea,2) + " Sq Ft <br/>";
+                        totalArea += PlaneList[a].effectiveArea;
                         // Check obstructions related to the plane
                         for(var b in ObsList) {
-                            if(ObsList[b].refPlaneId == PlanesList[a].id) {
-                                document.getElementById('area-ui').innerHTML += "\t Obstruction : " + ObsList[b].area + "Sq Ft \n";  ;
+                            if(ObsList[b].refPlaneId == PlaneList[a].id) {
+                                document.getElementById('area-ui').innerHTML += "&nbsp;&nbsp;&nbsp;&nbsp;Obstruction : " + roundNumber(ObsList[b].area,2) + " Sq Ft <br/>";
 
                             }
                         }
                     }
+            document.getElementById('area-ui').innerHTML += "<br/><br/> <b> Total Available Area : </b>" + roundNumber(totalArea,2) +" Sq Ft <br/>";
 
 
                 }
 
                 function getPlanes() {
+                    PlaneList = new Array();
                     for(var i in AreaList) {
                         if(AreaList[i].areaType == "plane") {
                             PlaneList.push(AreaList[i]);
@@ -272,6 +308,7 @@ Author     : Divya Reddy Anugu
                 }
 
                 function getObstructions() {
+                    ObsList = new Array();
                     for(var i in AreaList) {
                         if(AreaList[i].areaType == "obstruction") {
                             ObsList.push(AreaList[i]);
@@ -332,11 +369,16 @@ Author     : Divya Reddy Anugu
             <table width="100%">
                 <tr>
                     <td style="width:20%;" valign="top">
-                        <div id="sample-ui"></div>
+                        <div id="sample-ui" nowrap="nowrap"></div>
                         <br/>
-                        <br/>
+                        <div>
+                            <label><b>PLANES & OBSTRUCTIONS</b></label>
+                            <input type="button" onclick="clearAllAreas();" value="Clear All"/>
+                        </div>
+                        
                         <div >
                             <div id="area-ui" style="height:300px;border-color:gray;border-style:ridge; "></div>
+                         
                             <table width="100%">
                                 <tr>                                    
                                     <td>
@@ -345,8 +387,8 @@ Author     : Divya Reddy Anugu
             
                                     </td>
                                     <td align="right">
-                            <!--<input type="button" onclick="editPoly();" value="Edit Area"/> -->
-                            <input type="button" onclick="stopEditPoly('plane');" value="Finish"/>
+                            <input id="undo-plane" type="button" onclick="undoLastPoint();" value="Undo"/>
+                            <input id="save-plane" type="button" onclick="stopEditPoly('plane');" value="Finish"/>
                            
                                     </td>
                                     
@@ -358,21 +400,19 @@ Author     : Divya Reddy Anugu
                                         
                                     </td>
                                     <td align="right">
-                            <!--<div id="obstruction-ui" style="height:150px;border-color:gray;border-style:ridge;"></div> -->
-                            <input type="button" onclick="stopEditPoly('obstruction');" value="Finish"/>
+                           <input id="undo-obs" type="button" onclick="undoLastPoint();" value="Undo"/>
+                            
+                                        <input id="save-obs" type="button" onclick="stopEditPoly('obstruction');" value="Finish"/>
                                         
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>
                             
-                            <input type="button" onclick="clearAllAreas();" value="Clear All"/>
-            
+                          
                                     </td>
                                 </tr>
-                            </table>
-
-                            
+                            </table>                            
                             
                             <br/>
                             <p id="kml"> </p>
