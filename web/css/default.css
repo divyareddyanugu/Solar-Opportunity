@@ -10,7 +10,7 @@ html {
 body {
 	margin: 0;
 	padding: 0;
-	background: #FFFFFF url(/../TheSolarAdmin/img/header_bg.jpg) repeat-x;
+	background: #FFFFFF url(/../GESolar/img/header_bg.jpg) repeat-x;
 	font-family: Georgia, "Times New Roman", Times, serif;
 	font-size: 13px;
 	color: #666666;
@@ -112,7 +112,7 @@ div#appletContainer {
 #header {
 	height: 96px;
 	margin: auto;
-	background: url(/../TheSolarAdmin/img/header.jpg) no-repeat 50% 0;
+	background: url(/../GESolar/img/header.jpg) no-repeat 50% 0;
 }
 
 /* Logo */

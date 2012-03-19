@@ -3177,7 +3177,7 @@ GEarthExtensions.prototype.dom.buildFolder = domBuilder_({
  * @param {KmlFeature[]} [children] The children of this document.
  * @param {Object} options The parameters of the document to create.
  * @param {String} [options.name] The name of the feature.
- * @param {Boolean} [options.visibility] Whether or not the feature should
+ * @param {Boolean } [options.visibility] Whether or not the feature should
  *     be visible.
  * @param {String} [options.description] An HTML description for the feature;
  *     may be used as balloon text.
@@ -4767,7 +4767,8 @@ GEarthExtensions.prototype.edit.drawLineString = function(lineString,
     bounce: true,
     drawCallback: ALLOWED_,
     finishCallback: ALLOWED_,
-    ensureCounterClockwise: true
+    //@Modified by Divya
+    ensureCounterClockwise: false
   });
   
   var lineStringEditData = this.util.getJsDataValue(
