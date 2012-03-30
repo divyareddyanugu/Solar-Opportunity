@@ -180,7 +180,7 @@ div#appletContainer {
 #page {
 	width: 100%;
 	margin: 0 auto;
-	padding: 5px 0;
+	padding: 0 0;
 	position:relative ; 
         overflow-y:auto;
         overflow-x:hidden;
@@ -214,14 +214,14 @@ div#appletContainer {
 }
 
 .boxed {
-	margin: 5px 0 0 0;        
+	margin: 1px 0 0 0;
 }
 
 .boxed .title {
 	/*width: 250px;*/
 	height: 22px;
 	margin: 0;
-	padding: 2px 0 0 2px;
+	padding: 1px 0 0 1px;
 	/*168,195,203*/
 	background: #A8C3CB url(images/formtitle_bg.jpg) repeat-x;
 	font-size: 120%;
@@ -230,6 +230,122 @@ div#appletContainer {
 	border: 1px solid #97C984;
 	border-bottom: none;
         
+}
+
+.boxed .small_title {
+	/*width: 250px;*/
+	height: 22px;
+	margin: 0;
+	padding: 2px 0 0 2px;
+	/*168,195,203*/
+	background: #A8C3CB url(images/formtitle_bg.jpg) repeat-x;
+	font-size: 100%;
+	font-weight: bold;
+	color: #144B6B;
+	border: 1px solid #97C984;
+	border-bottom: none;
+
+}
+
+
+.balloon_tr {
+	background: #A8C3CB;
+font-weight: bold;
+    color: #FFFFFF;
+    
+}
+
+.balloon_submit {
+
+padding-top: 10px;
+margin-bottom: 2px;
+text-align: center;
+
+}
+
+.balloon_title {
+    font-weight: bold;
+    color: #FFFFFF;
+    background: #C0C0C0;
+    padding: 2px 0 0 2px;
+text-align:center;
+}
+
+.span_title {
+    font-weight: bold;
+    color: #FFFFFF;
+    background: #C0C0C0;
+    padding: 2px 0px 0px 2px;
+    width: 100%;
+    margin-bottom: 2px;
+    float:left;
+text-align:center;
+}
+
+.title1 {
+	/*width: 250px;*/
+	height: 22px;
+	margin: 2px 0 2px 0;
+        float:left;
+padding: 2px 0px 0px 2px;
+
+	/*168,195,203*/
+	background: #C0C0C0;
+	font-size: 100%;
+	font-weight: bold;
+	color: #144B6B;
+	border: 1px solid #97C984;
+	border-bottom: none;
+        width:72%;
+}
+
+.span_summary {
+    font-weight: bold;
+    color: #144B6B;
+    background: #A8C3CB;
+    width: 45%;
+    padding-top:4px ;
+    margin: 10px 0 1px 0;
+    float:left;
+text-align:left;
+height:22px;
+font-size:100%;
+}
+
+.span_subtitle {
+	background: #99CC99;
+font-weight: bold;
+    color: #FFFFFF;
+    margin: 0 0 1px 0;
+    float: left;
+    text-align: left;
+    width:45%;
+
+}
+.span_text {
+font-size: 100%;
+    margin: 0 0 1px 0;
+    float: left;
+    text-align: left;
+    width:55%
+
+}
+
+.span_summarytext {
+font-size: 100%;
+    margin: 10px 0 1px 0;
+    float: left;
+    text-align: left;
+    width:55%;
+        padding-top:4px;
+
+}
+
+.boxed .summary {
+	padding: 3px;
+	border: 1px solid #97C984;
+	border-top: none;
+
 }
 
 .boxed .content {
