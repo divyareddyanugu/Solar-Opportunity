@@ -28,9 +28,20 @@ function Area ()  {
     this.effectiveArea = 0;
     this.refPlaneId = -1;
     this.placemarkId = -1;
+    //Your roof orientation is the direction the roof is facing. The ideal
+    //roof should face directly south. This south facing direction results in optimum
+    // exposure during all months of the year.
+    
+    /**
+     * The orientation is represented in degrees
+     *
+     * 0 is south, going counter-clockwise with 90 degrees being east,
+     * 180 being north and 270 being west
+     */
+
     this.orientation = 0;
     this.rise = 0;
-    this.run = 0;
+    this.run = 1;
 }
 function addSampleButton(caption, clickHandler) {
     var btn = document.createElement('input');
@@ -115,28 +126,34 @@ function undoLastPoint(areaType){
         for (var i = n-2; i >= 0; i--) {
             tempCoords.push(coords.get(i));
         }
+       
     }
+
    // var tempId = polyPlacemark.getId();
     gex.dom.removeObject(polyPlacemark);
-    gex.edit.endEditLineString(polyPlacemark.getGeometry().getOuterBoundary());
-
+   gex.edit.endEditLineString(polyPlacemark.getGeometry().getOuterBoundary());
     var tempPlacemark = gex.dom.addPolygonPlacemark(tempCoords, {
         id: "id_" +placemarkId++ ,
         style: {
             poly: polyColor,
             line: {
-                width: 3,
+                width: 5,
                 color: drawColor
             }
         }
     });
-    ge.getFeatures().appendChild(tempPlacemark);
-    polyPlacemark = null;
+
+ge.getFeatures().appendChild(tempPlacemark);
+  polyPlacemark = null;
 
     polyPlacemark = tempPlacemark;
-    gex.edit.drawLineString(polyPlacemark.getGeometry().getOuterBoundary());
+  
 
+gex.edit.drawLineString(polyPlacemark.getGeometry().getOuterBoundary());
 
+alert("Last drawn point removed. The balls representing the corners of the remaining points will not be visible due to an error." +
+" \n To continue \n 1) Add points to the polygon. \n Or \n "+
+    "2) Click on Finish Drawing to stop editing the polygon. \n ");
 }
                
 function editPoly() {
@@ -218,6 +235,7 @@ function addGEEventListener() {
             var tempArea = liesInArea(new geo.Point(event.getLatitude(),event.getLongitude()));
             var id = tempArea.placemarkId;
             if(tempArea != -1) {
+                HideOrientationUI();
                 var div = document.createElement('DIV');
                 div.innerHTML = constructBalloon(tempArea, id);
                                 
@@ -236,12 +254,7 @@ function constructBalloon(selectedArea, objId) {
     if(selectedArea.areaType == 'plane') {
         areaType = 'ROOF SEGMENT ' + selectedArea.id;
         areaCalculated = selectedArea.area;
-        orientationString = "<tr> <td class='balloon_tr'> Orientation </td> <td> " +
-        " <input id='orientation" +selectedArea.id+ "' type='text' "+
-        "onchange=\"validateOrientation("+selectedArea.id +",this.value );\" maxlength='3' "+
-        "title='Angle of the roof in degrees. Value lies between 0 & 360 degrees.' " +
-        " style=\"width:30px;\" value='"+selectedArea.orientation+"'/> degrees </td> </tr>" +
-        "<tr> <td class='balloon_tr'> Slope </td> <td>" +
+        orientationString = "<tr> <td class='balloon_tr'> Slope </td> <td>" +
         "<input id='rise" +selectedArea.id+ "' " +
         "onchange=\"validateRise("+selectedArea.id +",this.value );\" maxlength='2' "+
         "title='Roof pitch is a numerical measure of the steepness of a roof. See Help for more info.' " +
@@ -249,7 +262,18 @@ function constructBalloon(selectedArea, objId) {
         "onchange=\"validateRun("+selectedArea.id +",this.value );\" maxlength='2' "+
         "title='Roof pitch is a numerical measure of the steepness of a roof. See Help for more info.' " +
         " type=text style='width:20px;' value='"+selectedArea.run+"'/>  ft  (rise/run) " +
-        "</td></tr>";
+        "<a href='#' style='padding-left:20px;' onclick=\"aboutSlope();return false;\"><i>Help</i></a>"+
+        "</td></tr> <tr> <td class='balloon_tr'> Orientation </td> <td> " +
+        " <input id='orientation" +selectedArea.id+ "' type='text' "+
+        "onchange=\"validateOrientation("+selectedArea.id +",this.value );\" maxlength='3' "+
+        "title='Angle of the roof w.r.t south. Value lies between 0 & 360 degrees.' " +
+        " style=\"width:30px;\" value='"+selectedArea.orientation+"'/> degrees  "+
+        "<a href='#' style='padding-left:84px;' onclick=\"aboutOrientation();return false;\"><i>Help</i></a>"+
+        "</td></tr><tr><td colspan=2> "+
+        "<a href='#' onclick=\"ShowOrientationUI("+selectedArea.id+");return false;\">Show Orientation Tool</a> &nbsp;&nbsp;"+
+        "<a href='#' onclick=\"HideOrientationUI();return false;\">Hide Tool</a></td> </tr>"
+
+       ;
     } else if(selectedArea.areaType == 'obstruction') {
         areaType = 'UNUSABLE AREA';
         areaCalculated = selectedArea.area;
@@ -262,7 +286,7 @@ function constructBalloon(selectedArea, objId) {
     orientationString +
     "<tr> <td colspan=2 class='balloon_submit'> " +
     "<input id='delete"+selectedArea.id+"' type='submit' value='Delete' "+
-    "onclick=\"gex.dom.removeObject(gex.dom.getObjectById('"+objId+"'));removeFromAreaList('"+objId+"');ge.setBalloon(null);return false;\"/>" +
+    "onclick=\"removeFromAreaList('"+objId+"');ge.setBalloon(null);return false;\"/>" +
     "<input id='clear"+selectedArea.id+"' type='submit' value='Cancel' onclick=\"cancelChanges("+selectedArea.id+");return false;\"/>";
     if(selectedArea.areaType == 'plane'){
         balloonContent += "<input id='update"+selectedArea.id+"' type='submit' value='Update' onclick=\"updateChanges('"+selectedArea.id+"');return false;\"/>";
@@ -270,10 +294,11 @@ function constructBalloon(selectedArea, objId) {
     balloonContent += "</tr> </tr> </table> ";
 
     return balloonContent;
+    //gex.dom.removeObject(gex.dom.getObjectById('"+objId+"'));
 }
 
 function deletePoly(placemarkId) {
-
+HideOrientationUI();
     gex.dom.removeObject(gex.dom.getObjectById(placemarkId));
 
 }
@@ -302,13 +327,69 @@ function cancelChanges(planeId) {
     ge.setBalloon(null);
 }
 
+function ShowOrientationUI(planeId) {
+    if(orientationCirclePlacemark){
+       orientationCirclePlacemark.setVisibility(true);       
+    }
+    if(tempOrientationPolyPlacemark) {
+        tempOrientationPolyPlacemark.setVisibility(true);
+    }
+    if(tempOrientationPlacemark) {
+        tempOrientationPlacemark.setVisibility(true);
+    }
+    if(tempBasePlacemark) {
+        tempBasePlacemark.setVisibility(true);
+    }
+    drawOrientationLine(planeId);
+    isOrientationUIToolActive = true;
+
+}
+
+function HideOrientationUI() {
+
+    if(isOrientationUIToolActive) {
+    if(orientationCirclePlacemark){
+       //gex.dom.removeObject(orientationCirclePlacemark);
+       orientationCirclePlacemark.setVisibility(false);
+       orientationCirclePlacemark = null;
+       
+    }
+    if(tempOrientationPolyPlacemark) {
+    //gex.dom.removeObject(tempOrientationPolyPlacemark);
+    tempOrientationPolyPlacemark.setVisibility(false);
+    tempOrientationPolyPlacemark = null;
+    }
+    if(tempOrientationPlacemark) {
+    //gex.dom.removeObject(tempOrientationPlacemark);
+    tempOrientationPlacemark.setVisibility(false);
+    tempOrientationPlacemark = null;
+    }
+    if(tempBasePlacemark) {
+   // gex.dom.removeObject(tempBasePlacemark);
+tempBasePlacemark.setVisibility(false);
+tempBasePlacemark = null;
+    }
+
+isOrientationUIToolActive = false;
+    } else
+        {
+//            alert('Tool is not visible');
+        }
+    
+}
+
 function updateChanges(planeId) {
     for(var u in AreaList) {
         if((AreaList[u].id == planeId)&& (AreaList[u].areaType == "plane")) {
             AreaList[u].orientation = newOrientation;
             AreaList[u].rise = newRise;
             AreaList[u].run = newRun;
+            // ge.setBalloon(null);
             alert("New orientation & slope values saved.");
+            //If the orientation UI tool is already displayed, then update it
+            if(isOrientationUIToolActive) {
+                drawOrientationLine(planeId);
+            }
             refreshAreaListUI();
         }
     }
@@ -356,6 +437,8 @@ function addToAreaList(polyPlacemark, areaType) {
 
 // Remove area from the area list
 function removeFromAreaList(deletedAreaPlacemarkId) {
+    var deleteFromAreaList = Array();
+
     for(var i in AreaList) {
         if(AreaList[i].placemarkId == deletedAreaPlacemarkId) {
             //If the removed area is an obstruction, then upadate the parent plane's effective area
@@ -366,7 +449,8 @@ function removeFromAreaList(deletedAreaPlacemarkId) {
                             AreaList[j].effectiveArea += AreaList[i].area;
                         }
                     }
-                    AreaList.splice(i,1);
+                    deletePoly(AreaList[i].placemarkId);
+                    deleteFromAreaList.push(AreaList[i].placemarkId);
                     refreshAreaListUI();
                 
             } else if (AreaList[i].areaType == "plane") {
@@ -376,24 +460,32 @@ function removeFromAreaList(deletedAreaPlacemarkId) {
                 for(var k in AreaList) {
                     if((AreaList[k].areaType == "obstruction") && (AreaList[k].refPlaneId == tempId)) {
                         deletePoly(AreaList[k].placemarkId);
-                        removeFromAreaList(AreaList[k].placemarkId);
+                        deleteFromAreaList.push(AreaList[k].placemarkId);
                         hasObstructions = true;
                     }
                 }
-                AreaList.splice(i,1);
+                deletePoly(AreaList[i].placemarkId);
+                deleteFromAreaList.push(AreaList[i].placemarkId);
+
                 if(hasObstructions) {
                     alert("Unusable areas related to this roof segment are also deleted");
                 }
 refreshAreaListUI();
-updatePlaneIds();
-                
+updatePlaneIds();                
             }
-            
-
-            
-            return true;
+            //return true;
         }
     }
+    for(var d in deleteFromAreaList){
+    for(var a in AreaList) {
+if(AreaList[a].placemarkId == deleteFromAreaList[d]) {
+    AreaList.splice(a,1);
+}    
+}
+                }
+                refreshAreaListUI();
+
+
     return false;
 }
 

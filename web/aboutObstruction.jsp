@@ -22,32 +22,35 @@ Author     : Divya Reddy Anugu
     <head>
 
           
-           <title>About Obstruction</title>
+           <title>About Unusable Area</title>
     </head>
     <body>
         <div id="page">
             <div id="content" style="margin-left:10px;">
-                <p><b> What is an Obstruction? </b></p>
-                <p>Obstruction is a section of the roof that can't be used for solar panels. Ex: Chimney / Skylight
+                <p><b> What is an Unusable Area? </b></p>
+                <p>Unusable area is a section of the roof that can't be used for solar panels. If there is an obstruction
+                    on the roof such as a chimney / skylight / tree shadow, then that section of the roof can not be used to
+                    install solar panels.
                     <br/>
                 The sample image below shows a roof with a skylight (see arrow). That section of the roof can not be used
-                to install a solar panel. It is called an obstruction.
-                <img src="<%=domain%>/img/sampleobstruction.JPG" style="width:700px;height:500px;" alt="Example Obstruction"/>
+                to install a solar panel. It is an unusable area.
+                <img src="<%=domain%>/img/sampleobstruction.JPG" style="width:700px;height:500px;" alt="Example Unusable Area"/>
 
                 </p>
-                <p><b> How to add an Obstruction? </b></p>
+                <p><b> How to add an Unusable Area? </b></p>
                 <p><ul>
-                        <li>Click on 'Start' button</li>
+                        <li>Click on 'Start Drawing' button</li>
                         <li>Click on the roof image to select points that together form a polygon. This polygon represents the unusable
-                         section of the roof, an obstruction. The entire obstruction should lie within a plane.
-                        <img src="<%=domain%>/img/aboutobstruction.png" style="width:700px;height:500px;" alt="Draw Obstruction"/>
+                         section of the roof. The entire unusable area should lie within a single roof segment.
+                        <img src="<%=domain%>/img/aboutobstruction.png" style="width:700px;height:500px;" alt="Draw Unusable Area"/>
                         <br/><br/>
                         </li>
-                        <li>Click on 'Finish' to complete drawing the obstruction. The obstruction is added to the 'Planes & Obstructions' list. <br/>
+                        <li>Click on 'Finish Drawing' to complete drawing the unusable area. The area is added to the
+                            'Property Summary' list. <br/>
 
-                        <img src="<%=domain%>/img/saveobstruction.png" style="width:700px;height:500px;" alt="Save Obstruction"/> <br/><br/>
+                        <img src="<%=domain%>/img/saveobstruction.png" style="width:700px;height:500px;" alt="Save Unusable Area"/> <br/><br/>
                             Or <br/>
-                            Click on 'Undo Area' to delete current obstruction and start over.
+                            Click on 'Remove Current Area' to delete current area and start over.
                         </li>
                     </ul></p>            
             </div>

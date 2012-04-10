@@ -4764,7 +4764,7 @@ function coordsEqual_(coord1, coord2) {
 GEarthExtensions.prototype.edit.drawLineString = function(lineString,
                                                           options) {
   options = checkParameters_(options, false, {
-    bounce: true,
+    bounce: false,
     drawCallback: ALLOWED_,
     finishCallback: ALLOWED_,
     //@Modified by Divya
@@ -4811,6 +4811,7 @@ GEarthExtensions.prototype.edit.drawLineString = function(lineString,
   var finishListener;
   
   var endFunction = function(abort) {
+    
     google.earth.removeEventListener(me.pluginInstance.getWindow(),
         'dblclick', finishListener);
     
@@ -4835,13 +4836,32 @@ GEarthExtensions.prototype.edit.drawLineString = function(lineString,
     if (options.finishCallback && !abort) {
       options.finishCallback.call(null);
     }
+      
+  
   };
   
   finishListener = function(event) {
+   
     event.preventDefault();
     endFunction.call(null);
-  };
-  
+   };
+
+   //Added by @Divya
+   for(var c in coords) {
+       var tempPlacemark = me.dom.buildPointPlacemark([coords[c].getLatitude(),coords[c].getLongitude()], {
+           altitudeMode: altitudeMode,
+      style: '#_GEarthExtensions_regularCoordinate',
+      visibility: false
+       });
+ innerDoc.getFeatures().appendChild(tempPlacemark);
+    if (isReverse) {
+      placemarks.unshift(tempPlacemark);
+    } else {
+      placemarks.push(tempPlacemark);
+    }
+
+}
+  //
   var drawNext;
   drawNext = function() {
     headPlacemark = me.dom.buildPointPlacemark([0, 0], {
@@ -4917,9 +4937,10 @@ GEarthExtensions.prototype.edit.drawLineString = function(lineString,
   };
 
   drawNext.call(null);
-  
-  google.earth.addEventListener(me.pluginInstance.getWindow(), 'dblclick',
-      finishListener);
+
+  //Edited by @Divya
+ // google.earth.addEventListener(me.pluginInstance.getWindow(), 'dblclick',
+   //   finishListener);
 
   // display the editing UI
   this.pluginInstance.getFeatures().appendChild(innerDoc);

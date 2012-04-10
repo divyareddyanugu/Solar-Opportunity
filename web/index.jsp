@@ -28,7 +28,8 @@ Author     : Divya Reddy Anugu
             </script>
             <script src="extensions.js" type="text/javascript"></script>
             <script src="arealist.js" type="text/javascript"></script>
-            <script src="validation.js" type="text/javascript"></script>
+            <script src="help.js" type="text/javascript"></script>
+<script src="orientation.js" type="text/javascript"></script>
 
             <script type="text/javascript">
                 var ge = null;
@@ -126,25 +127,6 @@ Author     : Divya Reddy Anugu
         
                 }
 
-                function openHelpGuide() {
-                    window.open('helpguide.jsp','popUpWindow','height=800,width=700,left=150,top=100,\n\
-            resizable=yes,scrollbars=yes,toolbar=yes,menubar=no,location=no,directories=no, status=yes');
-                    return false;
-                }
-
-
-                function aboutPlane() {
-                    window.open('aboutPlane.jsp','popUpWindow','height=500,width=800,left=100,top=100,\n\
-            resizable=yes,scrollbars=yes,toolbar=yes,menubar=no,location=no,directories=no, status=yes');
-                    return false;
-                }
-
-                function aboutObstruction() {
-                    window.open('aboutObstruction.jsp','popUpWindow','height=500,width=800,left=100,top=100,\n\
-            resizable=yes,scrollbars=yes,toolbar=yes,menubar=no,location=no,directories=no, status=yes');
-                    return false;
-                }
-
                 function markProperty(x,y) {
 
                     var pointPlacemark;
@@ -204,6 +186,43 @@ function offset(referenceArea, amount, calledFromOffset) {
 
 
 }
+function generateFile() {
+    var areaListAsString = ""; var separator = " , ";
+    areaListAsString ="RoofSegment Id, Type, Area, Usable Area, Orientation, Slope <br/>";
+    var planes = getPlanes();
+    var obs = getObstructions();
+    for(var a in planes) {
+
+        areaListAsString += planes[a].id + separator;
+        areaListAsString += planes[a].areaType+ separator;
+        areaListAsString += planes[a].area+ separator;
+        
+        areaListAsString += planes[a].effectiveArea+ separator;
+        areaListAsString += planes[a].orientation+ separator;
+        areaListAsString += planes[a].rise +"/"+ AreaList[a].run;
+        
+        areaListAsString += "<br/>";
+        for(var b in obs){
+            if(obs[b].refPlaneId == planes[a].id) {
+                areaListAsString += "NA" + separator;
+        areaListAsString += obs[a].areaType+ separator;
+        areaListAsString += obs[a].area+ separator;
+
+        areaListAsString += "NA"+ separator;
+        areaListAsString += "NA"+ separator;
+        areaListAsString += "NA";
+
+        areaListAsString += "<br/>";
+
+            }
+        }
+    }
+
+    // document.forms["saveFile"].target = "_blank";
+     document.forms["saveFile"].propSummary.value = areaListAsString;//document.getElementById("area-ui").innerHTML;
+                document.forms["saveFile"].submit();
+
+}
             </script>
 
 
@@ -228,7 +247,7 @@ function offset(referenceArea, amount, calledFromOffset) {
         <div id="page">
             <table width="100%">
                 <tr>
-                    <td style="width:23%;" valign="top">
+                    <td style="width:23%;min-width:310px;" valign="top">
                         <div  class="boxed">
                             <h2 class="small_title">Search Property Using Address</h2>
 
@@ -240,18 +259,18 @@ function offset(referenceArea, amount, calledFromOffset) {
                             <h2 class="small_title">Select Roof-Segment to Add Solar Panels</h2>
                             <div class="content">
                                 <p> <i> Draw/outline a segment of the roof that can be used for solar panels. </i>
-                                    <a href="" onclick="aboutPlane();return false;" > More>> </a></p>
+                                    <a href="" onclick="aboutPlane();return false;" ><i> Instructions</i> </a></p>
                                 <br/>
-                                <input id="draw-plane" type="button" onclick="drawPoly('plane');" style="width:130px;" value="Start Drawing"
+                                <input id="draw-plane" type="button" onclick="drawPoly('plane');" style="width:120px;" value="Start Drawing"
                                        title="Click here to start drawing on the roof the property. The outlined area can be used for solar panels"/>
-&nbsp;                                <input id="save-plane" type="button" onclick="stopEditPoly('plane');" style="width:145px;"
+                               <input id="save-plane" type="button" onclick="stopEditPoly('plane');" style="width:160px;"
                                              value="Finish Drawing" title="Click here to finish drawing the roof segment"/>
                                
                                 <br/>
- <input id="undoplane-point" type="button" onclick="undoLastPoint('plane');" style="width:130px;" value="Remove Last Point"
+ <input id="undoplane-point" type="button" onclick="undoLastPoint('plane');" style="width:120px;" value="Remove Last Point"
         title="Click here to delete the last point you have drawn"/>
-&nbsp;
-                                <input id="undo-plane" type="button" onclick="undoLastArea();" style="width:145px;" value="Remove Current Area"
+
+                                <input id="undo-plane" type="button" onclick="undoLastArea();" style="width:160px;" value="Remove Current Segment"
                                        title="Click here to delete roof segment you are currently drawing"/>
 
 
@@ -264,7 +283,7 @@ function offset(referenceArea, amount, calledFromOffset) {
                             <div class="content">
                                 <p> <i> Outline an area on the property roof that can NOT be used for solar panels.
                                    (Ex: a chimney, skylight or any other obstruction) </i>
-                                      <a href="" onclick="aboutObstruction();return false;" > More>> </a></p>
+                                      <a href="" onclick="aboutObstruction();return false;" ><i> Instructions </i> </a></p>
                                 <br/>
 
   <input id="draw-obs" type="button" onclick="drawPoly('obstruction');" style="width:130px;" value="Start Drawing"
@@ -295,7 +314,13 @@ function offset(referenceArea, amount, calledFromOffset) {
                             <h2 class="title">Property Summary</h2>
 
 
-                            <div id="area-ui" class="summary" style="height:340px;overflow-y:auto;overflow-x:no;"></div>
+                            <div id="area-ui" class="summary" style="height:320px;overflow-y:auto;overflow-x:no;"></div>
+                            <%@ page language="java" import="java.io.*" %>
+<form name="saveFile" method="GET" action="<%=domain%>/PropertySummary">
+<input type="submit" value="Download Property Summary"
+   onclick="return generateFile();"/>
+<input type="hidden" name="propSummary"/>
+</form>
                         </div>
 
 
