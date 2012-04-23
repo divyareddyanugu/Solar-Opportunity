@@ -33,9 +33,10 @@ Author     : Divya Reddy Anugu
             </p>
 
             <img src="<%=domain%>/img/help.png"/>
-            <p><b>How to set the slope for a roof segment. </b>
+            <p><b>How to set the slope for a roof segment? </b>
             <br/>
-                   <p> Draw a roof-segment on your roof. <br/>
+                   <p> Draw a roof-segment on your roof.  <i>(Click 'Start Drawing' -> Draw the polygon -> Click 'Finish Drawing'</i><br/>
+                
                 Click on the roof-segment to open the balloon, as seen in below image. </p>
 
             </p>

@@ -15,7 +15,8 @@ var isObsActive = false;
 var newOrientation = 0;
 var newRise = 0;
 var newRun = 0;
-
+var currentPlacemarkId = "";
+var totalArea = 0;
 var AreaList = new Array();
 var PlaneList = new Array();
 var ObsList = new Array();
@@ -84,8 +85,10 @@ function drawPoly(areaType) {
         drawColor = '#f00';
         polyColor = '800000ff';
     }
-    polyPlacemark = gex.dom.addPolygonPlacemark([], {
-        id: "id_" + placemarkId++,
+
+    currentPlacemarkId = placemarkId++;
+    polyPlacemark = gex.dom.addPolygonPlacemark([],{
+        id: "id_" + currentPlacemarkId,
         style: {
             poly: polyColor,
             line: {
@@ -94,6 +97,8 @@ function drawPoly(areaType) {
             }
         }
     });
+
+
     gex.edit.drawLineString(polyPlacemark.getGeometry().getOuterBoundary());
 
 }
@@ -129,11 +134,12 @@ function undoLastPoint(areaType){
        
     }
 
-   // var tempId = polyPlacemark.getId();
+    // var tempId = polyPlacemark.getId();
     gex.dom.removeObject(polyPlacemark);
-   gex.edit.endEditLineString(polyPlacemark.getGeometry().getOuterBoundary());
+    gex.edit.endEditLineString(polyPlacemark.getGeometry().getOuterBoundary());
+    currentPlacemarkId = placemarkId++;
     var tempPlacemark = gex.dom.addPolygonPlacemark(tempCoords, {
-        id: "id_" +placemarkId++ ,
+        id: "id_" +currentPlacemarkId,
         style: {
             poly: polyColor,
             line: {
@@ -143,17 +149,17 @@ function undoLastPoint(areaType){
         }
     });
 
-ge.getFeatures().appendChild(tempPlacemark);
-  polyPlacemark = null;
+    ge.getFeatures().appendChild(tempPlacemark);
+    polyPlacemark = null;
 
     polyPlacemark = tempPlacemark;
   
 
-gex.edit.drawLineString(polyPlacemark.getGeometry().getOuterBoundary());
+    gex.edit.drawLineString(polyPlacemark.getGeometry().getOuterBoundary());
 
-alert("Last drawn point removed. The balls representing the corners of the remaining points will not be visible due to an error." +
-" \n To continue \n 1) Add points to the polygon. \n Or \n "+
-    "2) Click on Finish Drawing to stop editing the polygon. \n ");
+    alert("Last drawn point removed. The balls representing the corners of the remaining points will not be visible due to an error." +
+        " \n To continue \n 1) Add points to the polygon. \n Or \n "+
+        "2) Click on Finish Drawing to stop editing the polygon. \n ");
 }
                
 function editPoly() {
@@ -174,12 +180,8 @@ function stopEditPoly(areaType) {
         return;
     }
     else {
+
         gex.edit.endEditLineString(polyPlacemark.getGeometry().getOuterBoundary());
-
-        addToAreaList(polyPlacemark, areaType);
-        //Add Mousedown event listener
-        addGEEventListener();
-
         //Disable undo button
         if(areaType == "plane") {
             isPlaneActive = false;
@@ -188,10 +190,13 @@ function stopEditPoly(areaType) {
             isObsActive = false;
             defaultObstructionMode();
         }
+        
+        addToAreaList(polyPlacemark, areaType);
+        //Add Mousedown event listener
+        addGEEventListener();
 
-
-    }
-    
+        
+    }    
 }
 
 /**
@@ -225,7 +230,7 @@ function addGEEventListener() {
 
 
         balloon.setFeature(event.getTarget());
-        balloon.setMaxWidth(300);
+        balloon.setMaxWidth(350);
 
         if(isPlaneActive || isObsActive) {
         // alert("You are currently editing a polygon. Select a plane after clicking 'Finish'.");
@@ -269,18 +274,19 @@ function constructBalloon(selectedArea, objId) {
         "title='Angle of the roof w.r.t south. Value lies between 0 & 360 degrees.' " +
         " style=\"width:30px;\" value='"+selectedArea.orientation+"'/> degrees  "+
         "<a href='#' style='padding-left:84px;' onclick=\"aboutOrientation();return false;\"><i>Help</i></a>"+
-        "</td></tr><tr><td colspan=2> "+
-        "<a href='#' onclick=\"ShowOrientationUI("+selectedArea.id+");return false;\">Show Orientation Tool</a> &nbsp;&nbsp;"+
-        "<a href='#' onclick=\"HideOrientationUI();return false;\">Hide Tool</a></td> </tr>"
+        "</td></tr><tr><td class='balloon_tr'> Orientation Tool </td> <td>"+
 
-       ;
+        "<input type='submit' value='Show' style='width:50px;' onclick=\"ShowOrientationUI("+selectedArea.id+");return false;\"/> &nbsp;"+
+        "<input type='submit' value='Hide' style='width:50px;' onclick=\"HideOrientationUI();return false;\" /></td> </tr>"
+
+    ;
     } else if(selectedArea.areaType == 'obstruction') {
         areaType = 'UNUSABLE AREA';
         areaCalculated = selectedArea.area;
         orientationString = "";
     }
 
-    var balloonContent = "<table width='300' border='0' height=auto> <tr> <td colspan='2' class='balloon_title'> " +
+    var balloonContent = "<table width='350' border='0' height=auto> <tr> <td colspan='2' class='balloon_title'> " +
     areaType + " </td> </tr> <tr> <td class='balloon_tr'>" +
     "Area </td> <td>" + areaCalculated + " Sq. Ft    </td> </tr>" +
     orientationString +
@@ -294,12 +300,13 @@ function constructBalloon(selectedArea, objId) {
     balloonContent += "</tr> </tr> </table> ";
 
     return balloonContent;
-    //gex.dom.removeObject(gex.dom.getObjectById('"+objId+"'));
+//gex.dom.removeObject(gex.dom.getObjectById('"+objId+"'));
 }
 
 function deletePoly(placemarkId) {
-HideOrientationUI();
+    HideOrientationUI();
     gex.dom.removeObject(gex.dom.getObjectById(placemarkId));
+    gex.dom.removeObject(gex.dom.getObjectById("label"+placemarkId));
 
 }
 
@@ -329,7 +336,7 @@ function cancelChanges(planeId) {
 
 function ShowOrientationUI(planeId) {
     if(orientationCirclePlacemark){
-       orientationCirclePlacemark.setVisibility(true);       
+        orientationCirclePlacemark.setVisibility(true);
     }
     if(tempOrientationPolyPlacemark) {
         tempOrientationPolyPlacemark.setVisibility(true);
@@ -348,33 +355,33 @@ function ShowOrientationUI(planeId) {
 function HideOrientationUI() {
 
     if(isOrientationUIToolActive) {
-    if(orientationCirclePlacemark){
-       //gex.dom.removeObject(orientationCirclePlacemark);
-       orientationCirclePlacemark.setVisibility(false);
-       orientationCirclePlacemark = null;
+        if(orientationCirclePlacemark){
+            //gex.dom.removeObject(orientationCirclePlacemark);
+            orientationCirclePlacemark.setVisibility(false);
+            orientationCirclePlacemark = null;
        
-    }
-    if(tempOrientationPolyPlacemark) {
-    //gex.dom.removeObject(tempOrientationPolyPlacemark);
-    tempOrientationPolyPlacemark.setVisibility(false);
-    tempOrientationPolyPlacemark = null;
-    }
-    if(tempOrientationPlacemark) {
-    //gex.dom.removeObject(tempOrientationPlacemark);
-    tempOrientationPlacemark.setVisibility(false);
-    tempOrientationPlacemark = null;
-    }
-    if(tempBasePlacemark) {
-   // gex.dom.removeObject(tempBasePlacemark);
-tempBasePlacemark.setVisibility(false);
-tempBasePlacemark = null;
-    }
-
-isOrientationUIToolActive = false;
-    } else
-        {
-//            alert('Tool is not visible');
         }
+        if(tempOrientationPolyPlacemark) {
+            //gex.dom.removeObject(tempOrientationPolyPlacemark);
+            tempOrientationPolyPlacemark.setVisibility(false);
+            tempOrientationPolyPlacemark = null;
+        }
+        if(tempOrientationPlacemark) {
+            //gex.dom.removeObject(tempOrientationPlacemark);
+            tempOrientationPlacemark.setVisibility(false);
+            tempOrientationPlacemark = null;
+        }
+        if(tempBasePlacemark) {
+            // gex.dom.removeObject(tempBasePlacemark);
+            tempBasePlacemark.setVisibility(false);
+            tempBasePlacemark = null;
+        }
+
+        isOrientationUIToolActive = false;
+    } else
+{
+//            alert('Tool is not visible');
+}
     
 }
 
@@ -418,6 +425,8 @@ function addToAreaList(polyPlacemark, areaType) {
         planeCount = getPlanes().length;
         newArea.id = planeCount+1;
         AreaList.push(newArea);
+        addPlaneLabel(newArea.id, newArea.placemarkId, newArea.polygon.outerBoundary().bounds().center());
+
     }
 
     if (areaType == "obstruction") {
@@ -428,11 +437,17 @@ function addToAreaList(polyPlacemark, areaType) {
             AreaList.push(newArea);
             updateEffectivePlaneArea(newArea.refPlaneId, newArea.area);
         } else {
-            alert("Unusable area must lie entirely in one roof segment");
+            if(AreaList.length == 0){
+                alert("Add a roof-segment before adding an unusable area.");
+            } else {
+            alert("Unusable area must lie entirely inside a roof segment. Try again!");
+            
+            }
             undoLastArea();
         }
     }
     refreshAreaListUI();
+    
 }
 
 // Remove area from the area list
@@ -444,14 +459,14 @@ function removeFromAreaList(deletedAreaPlacemarkId) {
             //If the removed area is an obstruction, then upadate the parent plane's effective area
             if(AreaList[i].areaType == "obstruction") {
                 
-                    for (var j in AreaList) {
-                        if(AreaList[j].id == AreaList[i].refPlaneId) {
-                            AreaList[j].effectiveArea += AreaList[i].area;
-                        }
+                for (var j in AreaList) {
+                    if(AreaList[j].id == AreaList[i].refPlaneId) {
+                        AreaList[j].effectiveArea += AreaList[i].area;
                     }
-                    deletePoly(AreaList[i].placemarkId);
-                    deleteFromAreaList.push(AreaList[i].placemarkId);
-                    refreshAreaListUI();
+                }
+                deletePoly(AreaList[i].placemarkId);
+                deleteFromAreaList.push(AreaList[i].placemarkId);
+                refreshAreaListUI();
                 
             } else if (AreaList[i].areaType == "plane") {
                 var tempId = AreaList[i].id;
@@ -470,22 +485,19 @@ function removeFromAreaList(deletedAreaPlacemarkId) {
                 if(hasObstructions) {
                     alert("Unusable areas related to this roof segment are also deleted");
                 }
-refreshAreaListUI();
-updatePlaneIds();                
+                refreshAreaListUI();                
             }
-            //return true;
         }
     }
     for(var d in deleteFromAreaList){
-    for(var a in AreaList) {
-if(AreaList[a].placemarkId == deleteFromAreaList[d]) {
-    AreaList.splice(a,1);
-}    
-}
-                }
-                refreshAreaListUI();
-
-
+        for(var a in AreaList) {
+            if(AreaList[a].placemarkId == deleteFromAreaList[d]) {
+                AreaList.splice(a,1);
+            }
+        }
+    }
+    updatePlaneIds();
+    refreshAreaListUI();
     return false;
 }
 
@@ -499,10 +511,16 @@ function updateEffectivePlaneArea(id, area) {
 
 function updatePlaneIds() {
     var pid = 1;
- var newPid = -1;
+    var newPid = -1;
     for(var p in AreaList) {
         if(AreaList[p].areaType == "plane") {
             newPid = pid++;
+            //Update label
+            //Remove if label already exists
+            if(gex.dom.getObjectById("label"+AreaList[p].placemarkId)){
+                gex.dom.getObjectById("label"+AreaList[p].placemarkId).setName(""+newPid);
+            }
+
             //Update RefPlaneIds of all obstructions that belong to this plane
             for(var o in AreaList) {
                 if((AreaList[o].areaType == "obstruction") && (AreaList[o].refPlaneId == AreaList[p].id)) {
@@ -516,14 +534,14 @@ function updatePlaneIds() {
 
 function refreshAreaListUI() {
     clearAreaUIHtml();
-  //  updatePlaneIds();
-    var totalArea = 0;
+    //  updatePlaneIds();
+    totalArea = 0;
     PlaneList = getPlanes();
     ObsList = getObstructions();
-   // document.getElementById('area-ui').innerHTML += "<table>";
+    // document.getElementById('area-ui').innerHTML += "<table>";
     for(var a in PlaneList) {
         document.getElementById('area-ui').innerHTML += "<span class='span_title'>Roof Segment " + PlaneList[a].id + " </span> " +
-            "<span class='span_subtitle'>Area </span> <span class='span_text'>&nbsp;"+ roundNumber(PlaneList[a].area,2) + " <i>SqFt</i> </span> " +
+        "<span class='span_subtitle'>Area </span> <span class='span_text'>&nbsp;"+ roundNumber(PlaneList[a].area,2) + " <i>SqFt</i> </span> " +
         "<span class='span_subtitle'>&nbsp;&nbsp;&nbsp;Orientation </span> <span class='span_text'>&nbsp;" +PlaneList[a].orientation+ " <i>degrees</i> </span>" +
         "<span class='span_subtitle'>&nbsp;&nbsp;&nbsp;Slope </span> <span class='span_text'>&nbsp;" +PlaneList[a].rise+ " <i>ft</i> / "+
         PlaneList[a].run+ " <i>ft  (rise/run)</i> </span>";
@@ -536,17 +554,32 @@ function refreshAreaListUI() {
             }
         }
         document.getElementById('area-ui').innerHTML += "<span class='span_subtitle'>Usable Area </span> <span class='span_text'>&nbsp;" +
-            roundNumber(PlaneList[a].effectiveArea,2) + " <i>SqFt</i> </span>";
+        roundNumber(PlaneList[a].effectiveArea,2) + " <i>SqFt</i> </span>";
 
-  //     document.getElementById('area-ui').innerHTML += "<p style=\"border-bottom: 1px dotted #000000; width: 260px;\"> <br/>";
+    //Add Label
+    //addPlaneLabel(PlaneList[a].id, PlaneList[a].placemarkId, PlaneList[a].polygon.outerBoundary().bounds().center());
     }
     document.getElementById('area-ui').innerHTML += "  "+
-        "<h2 class='span_summary'>Total Usable Area</h2> <span class='span_summarytext'>&nbsp;" + roundNumber(totalArea,2) +" <i>SqFt</i> </span> ";
+    "<h2 class='span_summary'>Total Usable Area</h2> <span class='span_summarytext'>&nbsp;" + roundNumber(totalArea,2) +" <i>SqFt</i> </span> ";
 
 
 }
 
+function addPlaneLabel(id, placemarkId, point){
+    var  labelPlacemark = gex.dom.addPlacemark({
+        id: "label"+ placemarkId,
+        name: "" +id,
+        point: point,
+        style: {
+            icon: {
+                scale:0
+            }
+        }
 
+    });
+
+    
+}
 
 function getPlanes() {
     PlaneList = new Array();
@@ -592,7 +625,8 @@ function clearAllAreas() {
     clearAreaUIHtml();
     defaultPlaneMode();
     defaultObstructionMode();
-    isPlaneActive = false; isObsActive = false;
+    isPlaneActive = false;
+    isObsActive = false;
     AreaList = new Array();
     planeCount = 0;
 }

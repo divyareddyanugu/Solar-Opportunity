@@ -31,17 +31,7 @@ public class PropertySummary extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            // TODO output your page here
-        /*    out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet PropertySummary</title>");  
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet PropertySummary at " + request.getContextPath () + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-            
-*/
+           
         } finally { 
             out.close();
         }
@@ -58,31 +48,24 @@ public class PropertySummary extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        String filename = "property_summary.csv";//request.getPathInfo();
+        String filename = null;
+String format = request.getParameter("format");
 
+
+if(format.equalsIgnoreCase("CSV")) {
     response.setHeader("content-type", "text/csv");
-    response.setHeader("content-disposition", "attachment;filename=\"" + filename + "\"");
+        filename = "property_summary.csv";
 
-       
+} else if(format.equalsIgnoreCase("text")) {
+    response.setHeader("content-type", "text");
+        filename = "property_summary.txt";
+
+}
+    response.setHeader("content-disposition", "attachment;filename=\"" + filename + "\"");
 PrintWriter out = response.getWriter();
 String summary = request.getParameter("propSummary");
 String newSummary = summary.replace("<br/>", "\n");
 out.append(newSummary);
-/*out.println("<html>");
-            out.println("<head><link href='/css/default.css' rel='stylesheet' type='text/css' />            ");
-            out.println("<title>Servlet PropertySummary</title>");
-            out.println("</head>");
-            out.println("<body>");
-
-out.println(summary);
-out.println("</body>");
-out.println("</html>");
-
-*/
-//getServletContext().setAttribute("propertysummary", "attributeValue");
-
-//RequestDispatcher rd = request.getRequestDispatcher("/summary.jsp");
-//rd.forward(request, response);
     } 
 
     /** 

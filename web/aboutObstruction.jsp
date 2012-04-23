@@ -28,9 +28,8 @@ Author     : Divya Reddy Anugu
         <div id="page">
             <div id="content" style="margin-left:10px;">
                 <p><b> What is an Unusable Area? </b></p>
-                <p>Unusable area is a section of the roof that can't be used for solar panels. If there is an obstruction
-                    on the roof such as a chimney / skylight / tree shadow, then that section of the roof can not be used to
-                    install solar panels.
+                <p>Unusable area is a section of the roof that can't be used for solar panels. If there is a chimney / skylight / 
+                    tree shadow on the roof, then that section of the roof can not be used to install solar panels.
                     <br/>
                 The sample image below shows a roof with a skylight (see arrow). That section of the roof can not be used
                 to install a solar panel. It is an unusable area.

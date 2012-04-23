@@ -29,7 +29,7 @@ Author     : Divya Reddy Anugu
             <script src="extensions.js" type="text/javascript"></script>
             <script src="arealist.js" type="text/javascript"></script>
             <script src="help.js" type="text/javascript"></script>
-<script src="orientation.js" type="text/javascript"></script>
+            <script src="orientation.js" type="text/javascript"></script>
 
             <script type="text/javascript">
                 var ge = null;
@@ -105,8 +105,8 @@ Author     : Divya Reddy Anugu
 
                     document.getElementById('draw-plane').disabled = true;
                     document.getElementById("undo-plane").disabled = false;
-        document.getElementById("undoplane-point").disabled = false;
-        document.getElementById("save-plane").disabled = false;
+                    document.getElementById("undoplane-point").disabled = false;
+                    document.getElementById("save-plane").disabled = false;
 
                 }
                 function defaultObstructionMode() {
@@ -122,8 +122,8 @@ Author     : Divya Reddy Anugu
 
                     document.getElementById('draw-obs').disabled = true;
                     document.getElementById("undo-obs").disabled = false;
-        document.getElementById("undoobs-point").disabled = false;
-        document.getElementById("save-obs").disabled = false;
+                    document.getElementById("undoobs-point").disabled = false;
+                    document.getElementById("save-obs").disabled = false;
         
                 }
 
@@ -131,7 +131,8 @@ Author     : Divya Reddy Anugu
 
                     var pointPlacemark;
                     var p = ge.createPoint('');
-                    p.setLatitude(x+0.00005); 
+                    //p.setLatitude(x+0.00005);
+                    p.setLatitude(x);
                     p.setLongitude(y);
                     pointPlacemark = ge.createPlacemark('');
 
@@ -151,13 +152,15 @@ Author     : Divya Reddy Anugu
 
                         var balloon = ge.createHtmlStringBalloon('');
                         balloon.setFeature(event.getTarget());
-                        balloon.setMaxWidth(300);
+                        balloon.setMaxWidth(350);
 
                         // Google logo.
                         balloon.setContentString(
-                        "<p> <b> Roof of the property: </b> </p> <p>"+ geocodeLocation+" </p>" +
-                            "<input value='Remove Pin' style='width:180px;' type='submit'  onclick=\"removePointPlacemark();ge.setBalloon(null);return false;\"/>"
-                            );
+                        "<p> <b> Roof of the property: </b> "+ geocodeLocation+" </p>" +
+                            "<p><i>Zoom-in to get a clearer view of the property. The bigger your roof appears, the easier it is to select roof-segments. </i> </p><br/>"+
+                            "<div style='text-align:center;'>"+
+"<input value='Remove Pin' style='width:30%;' type='submit'  onclick=\"removePointPlacemark();ge.setBalloon(null);return false;\"/>" +
+"</div>"                    );
 
                         ge.setBalloon(balloon);
                     });
@@ -165,64 +168,93 @@ Author     : Divya Reddy Anugu
                 }
 
 
-             /*
-              * Removes the point placemark that identifies the searched property
-              * And removes the balloon corresponding to the point
-              */
-              function removePointPlacemark() {
-                  var kmlObjectList = ge.getFeatures().getChildNodes();
-for(var i = 0; i<kmlObjectList.getLength(); i++){
- var item = kmlObjectList.item(i);
-        //checks and see if it is a place mark and if the placemark is a point
-  if( item.getGeometry().getType() == 'KmlPoint'){
-   ge.getFeatures().removeChild(item);
-  }
- }
-              }
+                /*
+                 * Removes the point placemark that identifies the searched property
+                 * And removes the balloon corresponding to the point
+                 */
+                function removePointPlacemark() {
+                    var kmlObjectList = ge.getFeatures().getChildNodes();
+                    for(var i = 0; i<kmlObjectList.getLength(); i++){
+                        var item = kmlObjectList.item(i);
+                        //checks and see if it is a place mark and if the placemark is a point
+                        if( item.getGeometry().getType() == 'KmlPoint'){
+                            ge.getFeatures().removeChild(item);
+                        }
+                    }
+                }
 
-function offset(referenceArea, amount, calledFromOffset) {
-    var offsetArea = new Area();
+                function offset(referenceArea, amount, calledFromOffset) {
+                    var offsetArea = new Area();
 
 
 
-}
-function generateFile() {
-    var areaListAsString = ""; var separator = " , ";
-    areaListAsString ="RoofSegment Id, Type, Area, Usable Area, Orientation, Slope <br/>";
-    var planes = getPlanes();
-    var obs = getObstructions();
-    for(var a in planes) {
+                }
+                function generateFile() {
+                    if(totalArea == 0) {
+                        alert("No roof-segments have been added. Try again after adding some roof-segments.");
+                        return false;
+                    }
+                    var areaListAsString = ""; var separator = " , ";
+                    var fileFormat = document.getElementById("fileformat");
+                    var selectedFormat = fileFormat.options[fileFormat.selectedIndex].text;
+                    var address = document.getElementById("location").value;
+                    var planes = getPlanes();
+                    var obs = getObstructions();
+                    
+                    if(selectedFormat == "Text") {
+                    for(var a in planes) {
+                        areaListAsString += "Roof-Segment Id, Area, Unusable Area, Usable Area, Orientation, Slope,";
+                    }
+                    areaListAsString += "\r\n";
+                    for(var a in planes) {
+                        var unusableArea = 0;
+                        areaListAsString += planes[a].id + separator;
+                        areaListAsString += planes[a].area+ separator;
+                        for(var b in obs){
+                            if(obs[b].refPlaneId == planes[a].id) {
+                                unusableArea = unusableArea + obs[a].area;
+                            }
+                        }
+                        areaListAsString += unusableArea + separator;
+                        areaListAsString += planes[a].effectiveArea+ separator;
+                        areaListAsString += planes[a].orientation+ separator;
+                        areaListAsString += planes[a].rise/AreaList[a].run + separator;
 
-        areaListAsString += planes[a].id + separator;
-        areaListAsString += planes[a].areaType+ separator;
-        areaListAsString += planes[a].area+ separator;
+
+                    }
+
+
+                    document.forms["saveFile"].format.value = "text";
+                    } else {
+
+                    
+                    areaListAsString += "PROPERTY:"+  separator + address + "<br/><br/>";
+                    areaListAsString += "Total Property Usable Area" + separator + roundNumber(totalArea,2) + "SqFt" + "<br/> <br/>";
+                    areaListAsString += "Roof-Segment Id, Area, Unusable Area, Usable Area, Orientation, Slope <br/>";
+                    for(var a in planes) {
+                        var unusableArea = 0;
+                        areaListAsString += planes[a].id + separator;
+                        areaListAsString += planes[a].area+ separator;
+                        for(var b in obs){
+                            if(obs[b].refPlaneId == planes[a].id) {
+                                unusableArea = unusableArea + obs[a].area;
+                            }
+                        }
+                        areaListAsString += unusableArea + separator;
+                        areaListAsString += planes[a].effectiveArea+ separator;
+                        areaListAsString += planes[a].orientation+ separator;
+                        areaListAsString += planes[a].rise/AreaList[a].run;
         
-        areaListAsString += planes[a].effectiveArea+ separator;
-        areaListAsString += planes[a].orientation+ separator;
-        areaListAsString += planes[a].rise +"/"+ AreaList[a].run;
-        
-        areaListAsString += "<br/>";
-        for(var b in obs){
-            if(obs[b].refPlaneId == planes[a].id) {
-                areaListAsString += "NA" + separator;
-        areaListAsString += obs[a].areaType+ separator;
-        areaListAsString += obs[a].area+ separator;
+                        areaListAsString += "<br/>";
+                        
+                    }
 
-        areaListAsString += "NA"+ separator;
-        areaListAsString += "NA"+ separator;
-        areaListAsString += "NA";
+                    document.forms["saveFile"].format.value = "CSV";
+                    }
+                    document.forms["saveFile"].propSummary.value = areaListAsString;//document.getElementById("area-ui").innerHTML;
+                    document.forms["saveFile"].submit();
 
-        areaListAsString += "<br/>";
-
-            }
-        }
-    }
-
-    // document.forms["saveFile"].target = "_blank";
-     document.forms["saveFile"].propSummary.value = areaListAsString;//document.getElementById("area-ui").innerHTML;
-                document.forms["saveFile"].submit();
-
-}
+                }
             </script>
 
 
@@ -252,23 +284,26 @@ function generateFile() {
                             <h2 class="small_title">Search Property Using Address</h2>
 
                             <div id="sample-ui" nowrap="nowrap"></div>
-                            
+                                                        <br/>
                         </div>
-                        <br/>
+                        
                         <div  class="boxed">
                             <h2 class="small_title">Select Roof-Segment to Add Solar Panels</h2>
                             <div class="content">
                                 <p> <i> Draw/outline a segment of the roof that can be used for solar panels. </i>
                                     <a href="" onclick="aboutPlane();return false;" ><i> Instructions</i> </a></p>
+                                <p><i>After finishing drawing the roof-segment, click on it to set the
+                                        <a href="" onclick="aboutOrientation(); return false;">orientation</a> and
+                                        <a href="" onclick="aboutSlope();return false;">slope</a>.</i></p>
                                 <br/>
                                 <input id="draw-plane" type="button" onclick="drawPoly('plane');" style="width:120px;" value="Start Drawing"
                                        title="Click here to start drawing on the roof the property. The outlined area can be used for solar panels"/>
-                               <input id="save-plane" type="button" onclick="stopEditPoly('plane');" style="width:160px;"
-                                             value="Finish Drawing" title="Click here to finish drawing the roof segment"/>
-                               
+                                <input id="save-plane" type="button" onclick="stopEditPoly('plane');" style="width:160px;"
+                                       value="Finish Drawing" title="Click here to finish drawing the roof segment"/>
+
                                 <br/>
- <input id="undoplane-point" type="button" onclick="undoLastPoint('plane');" style="width:120px;" value="Remove Last Point"
-        title="Click here to delete the last point you have drawn"/>
+                                <input id="undoplane-point" type="button" onclick="undoLastPoint('plane');" style="width:120px;" value="Remove Last Point"
+                                       title="Click here to delete the last point you have drawn"/>
 
                                 <input id="undo-plane" type="button" onclick="undoLastArea();" style="width:160px;" value="Remove Current Segment"
                                        title="Click here to delete roof segment you are currently drawing"/>
@@ -282,45 +317,54 @@ function generateFile() {
                             <h2 class="small_title">Select Unusable Area of Roof-Segment</h2>
                             <div class="content">
                                 <p> <i> Outline an area on the property roof that can NOT be used for solar panels.
-                                   (Ex: a chimney, skylight or any other obstruction) </i>
-                                      <a href="" onclick="aboutObstruction();return false;" ><i> Instructions </i> </a></p>
+                                        (Ex: a chimney, skylight) </i>
+                                    <a href="" onclick="aboutObstruction();return false;" ><i> Instructions </i> </a></p>
                                 <br/>
 
-  <input id="draw-obs" type="button" onclick="drawPoly('obstruction');" style="width:130px;" value="Start Drawing"
-         title="Click here to start drawing on the roof of property. The outlined area can NOT be used for solar panels"/>
-         &nbsp;                      <input id="save-obs" type="button" onclick="stopEditPoly('obstruction');" style="width:145px;"
-                                             value="Finish Drawing" title="Click here to finish drawing the unusable area"/>
+                                <input id="draw-obs" type="button" onclick="drawPoly('obstruction');" style="width:130px;" value="Start Drawing"
+                                       title="Click here to start drawing on the roof of property. The outlined area can NOT be used for solar panels"/>
+                                &nbsp;                      <input id="save-obs" type="button" onclick="stopEditPoly('obstruction');" style="width:145px;"
+                                                                   value="Finish Drawing" title="Click here to finish drawing the unusable area"/>
 
                                 <br/>
- <input id="undoobs-point" type="button" onclick="undoLastPoint('obstruction');" style="width:130px;" value="Remove Last Point"
-        title="Click here to delete the last point you have drawn"/>
-&nbsp;
+                                <input id="undoobs-point" type="button" onclick="undoLastPoint('obstruction');" style="width:130px;" value="Remove Last Point"
+                                       title="Click here to delete the last point you have drawn"/>
+                                &nbsp;
                                 <input id="undo-obs" type="button" onclick="undoLastArea();" style="width:145px;" value="Remove Current Area"
                                        title="Click here to delete the area you are currently drawing"/>
 
-                              
+
                             </div>
                         </div>
 
                         <div style="margin:1px 0 1px 0;height:28px;" >
-                            <h2 class="title1"> Remove All Roof Segments </h2>
-                                    <input style="float:right;width:80px;height:28px;"
-                                        title="Click here to remove all the roof segments you have drawn on the property"   type="button" onclick="clearAllAreas();" value="Clear"/>
-<br/>
+                            <h2 class="title1" style="width:72%;"> Remove All Roof Segments </h2>
+                            <input style="float:right;width:80px;height:28px;"
+                                   title="Click here to remove all the roof segments you have drawn on the property"   type="button" onclick="clearAllAreas();" value="Clear"/>
+                            <br/>
 
 
-                     </div>
+                        </div>
                         <div id="info" class="boxed" >
                             <h2 class="title">Property Summary</h2>
 
 
                             <div id="area-ui" class="summary" style="height:320px;overflow-y:auto;overflow-x:no;"></div>
                             <%@ page language="java" import="java.io.*" %>
-<form name="saveFile" method="GET" action="<%=domain%>/PropertySummary">
-<input type="submit" value="Download Property Summary"
-   onclick="return generateFile();"/>
-<input type="hidden" name="propSummary"/>
-</form>
+                            <form name="saveFile" method="GET" action="<%=domain%>/PropertySummary">
+                              <div >
+                            <h2 class="title1" style="width:25%;margin-right:2px;">  File Type </h2>
+                               <select name="fileformat" style="width:25%;" id="fileformat">
+                                    <option id="csv">CSV</option>
+                                    <option id="text">Text</option>
+                                </select>
+                                <input type="submit" value="Download Summary"
+                                       onclick="return generateFile();"/>
+                                <input type="hidden" name="propSummary"/>
+                                <input type="hidden" name="format"/>
+                            
+                              </div>
+                               </form>
                         </div>
 
 
@@ -346,7 +390,7 @@ function generateFile() {
                             <p>©2008 San Francisco State University.</p>
                         </td>
                         <td align="center">
-                            <p><a href="<%=domain%>/secure/about.jsp">About</a> | <a href="<%=domain%>/secure/credits.jsp">Credits</a> </p>
+                            <p><a href="<%=domain%>/about.jsp">About/Credits</a> </p>
                         </td>
                         <td align="right">
                             <p><i>(Based on a design by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a>)</i></p>

@@ -28,7 +28,7 @@ Author     : Divya Reddy Anugu
     <body>
         <div id="page">
             <div id="content" style="margin-left:10px;">
-                <p><b> What is Orientation of a Roof-Segment ? </b></p>
+                <p><b> What is Orientation of a Roof-Segment? </b></p>
                 <p>Roof orientation describes how South-facing your roof is.</p>
                 <p> Orientation is measured in degrees (counter-clockwise from South).
                 <ul>
@@ -50,7 +50,8 @@ Author     : Divya Reddy Anugu
                     </li>
                     <li> Enter the value in orientation textbox. </li>
                 </ul>
-                <p> Draw a roof-segment on your roof. <br/>
+                <b>Using The Orientation Tool</b>
+                <p> Draw a roof-segment on your roof. <i>(Click 'Start Drawing' -> Draw the polygon -> Click 'Finish Drawing'</i><br/>
                 Click on the roof-segment to open the balloon, as seen in below image. </p>
                 <img src="<%=domain%>/img/orientationBalloon.png" style="width:700px;height:500px;" alt=""/>
                 <p>Click on link 'Show Orientation Tool' in the balloon.
@@ -63,8 +64,15 @@ Author     : Divya Reddy Anugu
                 Click on roof-segment to open the balloon. <br/>
                 See the value in orientation textbox in the image below</p>
                 <img src="<%=domain%>/img/orientationAfterSet.png" style="width:700px;height:500px;" alt=""/>
+               <br/>
+               <br/>
+                <b>Enter The Value In Orientation Textbox </b>
+                 <p> Draw a roof-segment on your roof. <i>(Click 'Start Drawing' -> Draw the polygon -> Click 'Finish Drawing'</i><br/>
+                Click on the roof-segment to open the balloon, as seen in below image. </p>
+                <img src="<%=domain%>/img/orientationBalloon.png" style="width:700px;height:500px;" alt=""/>
+
                 <p>
-Instead of using the UI tool you can also directly enter the orientation value (between 0 and 360) in the orientation
+Enter the orientation value (between 0 and 360) in the orientation
 textbox in the balloon and click on button 'Update'
                 </p>    </div>
         </div>
