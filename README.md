@@ -5,7 +5,8 @@ URL: http://www.mysolaropportunity.com
 
 Hosted on appFog PaaS.
 
-To Do:
+# To Do
+Fix UI
 Hook up Clean Power API to determine monthly savings in electricity bills.
 
 
